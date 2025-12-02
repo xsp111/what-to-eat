@@ -1,15 +1,25 @@
 import { createStore } from 'zustand';
 import { getCookieByKey, removeCookieByKey } from '../../utils';
 import * as userService from '../../service/userService';
+import * as llmService from '../../service/llmService';
 
 const userStore = createStore((_set, _get) => ({
 	user: null,
 	hkTips: undefined,
-	setHkTips: (tips) => {
-		console.log(111, tips);
-		_set({
-			hkTips: tips,
-		});
+	setHkTips: async () => {
+		const reader = await llmService.analyze();
+		let botText = '';
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) {
+				break;
+			}
+			const chunk = new TextDecoder().decode(value);
+			botText += chunk;
+			_set({
+				hkTips: botText,
+			});
+		}
 	},
 	setUser: (userInfo) => {
 		_set({
@@ -19,12 +29,8 @@ const userStore = createStore((_set, _get) => ({
 	initLogState: () => {
 		// check cookie
 		const authToken = getCookieByKey('authToken');
-		if (!authToken) {
-			_set({
-				showUnloginModalTip: true,
-			});
-			return;
-		}
+		if (!authToken) return;
+		const { setHkTips } = _get();
 		userService.getUserInfoByToken().then((res) => {
 			if (res.success) {
 				_set({
@@ -32,6 +38,7 @@ const userStore = createStore((_set, _get) => ({
 				});
 			}
 		});
+		setHkTips();
 	},
 	editUserInfo: (newInfo) => {
 		const { avatarFile, ...info } = newInfo;
@@ -73,10 +80,18 @@ const userStore = createStore((_set, _get) => ({
 		const { userId } = _get();
 		return userId;
 	},
+	loginOrSignUp: (userInfo, isLogin = true) => {
+		if (isLogin) {
+			return userService.login(userInfo);
+		} else {
+			return userService.signUp(userInfo);
+		}
+	},
 	logout: () => {
 		removeCookieByKey('authToken');
 		_set({
 			user: null,
+			hkTips: undefined,
 		});
 	},
 }));

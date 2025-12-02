@@ -2,7 +2,7 @@ import { ChatDeepSeek } from '@langchain/deepseek';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 
 const model = new ChatDeepSeek({
-	model: 'deepseek-reasoner',
+	model: 'deepseek-chat',
 	// eslint-disable-next-line
 	apiKey: process.env.API_KEY || undefined,
 	temperature: 0,

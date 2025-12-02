@@ -5,11 +5,16 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { LoadingOutlined, UserOutlined } from '@ant-design/icons';
 import Button from '../../../components/button';
 import { MessageContext } from '../../../components/rootLayout/context';
-import * as userService from '../../../service/userService';
 
 function LoginOrSignUp(props) {
-	const { setLoginOrSignUpRes, setVisible } = props;
+	const { setVisible } = props;
+	const {
+		setUser: setLoginOrSignUpRes,
+		loginOrSignUp,
+		setHkTips,
+	} = useStore(userStore);
 	const [isLogin, setIsLogin] = useState(true);
+	const tipsType = isLogin ? '登录' : '注册';
 	const messageApi = useContext(MessageContext);
 	const [isLoading, setIsLoading] = useState(false);
 	const [user, setUser] = useState({
@@ -24,46 +29,29 @@ function LoginOrSignUp(props) {
 		});
 	}
 
-	async function handleLogin() {
+	async function handleLoginOrSignUp() {
 		if (user.name.trim() === '' || user.password.trim() === '') {
 			messageApi.error('请输入正确的用户名或密码');
 			return;
 		}
 		setIsLoading(true);
-		const res = await userService.login(user);
+		const res = await loginOrSignUp(user, isLogin);
 		if (!res.success) {
-			messageApi.error('登录失败,' + res.msg);
+			messageApi.error(tipsType + '失败,' + isLogin ? res.msg : '');
 			setIsLoading(false);
 			return;
 		}
+		setHkTips();
 		setIsLoading(false);
 		setLoginOrSignUpRes(res.msg);
-		messageApi.success('登录成功');
-		setVisible(false);
-	}
-
-	async function handleSignUp() {
-		if (user.name.trim() === '' || user.password.trim() === '') {
-			messageApi.error('请输入正确的用户名或密码');
-			return;
-		}
-		setIsLoading(true);
-		const res = await userService.signUp(user);
-		if (!res.success) {
-			messageApi.error('注册失败');
-			setIsLoading(false);
-			return;
-		}
-		setIsLoading(false);
-		setLoginOrSignUpRes(res.msg);
-		messageApi.success('注册成功');
+		messageApi.success(tipsType + '成功');
 		setVisible(false);
 	}
 
 	return (
 		<>
 			<div className='mb-2 text-gray-700 font-bold text-2xl'>
-				{isLogin ? '登录' : '注册'}
+				{tipsType}
 			</div>
 			<div className='flex justify-center w-full'>
 				<span className='flex-1'>用户名</span>
@@ -116,9 +104,9 @@ function LoginOrSignUp(props) {
 				className={`w-full h-8 ${
 					isLoading ? 'bg-gray-300' : 'bg-sky-200'
 				} border-none text-white`}
-				onClick={isLogin ? handleLogin : handleSignUp}
+				onClick={handleLoginOrSignUp}
 			>
-				{isLoading ? <LoadingOutlined /> : isLogin ? '登录' : '注册'}
+				{isLoading ? <LoadingOutlined /> : tipsType}
 			</Button>
 		</>
 	);
@@ -238,7 +226,7 @@ function EditProfile(props) {
 
 export default function LogDrawer(props) {
 	const { visible, setVisible } = props;
-	const { user, setUser, logout } = useStore(userStore);
+	const { user, logout } = useStore(userStore);
 	return (
 		<Drawer
 			open={visible}
@@ -256,10 +244,7 @@ export default function LogDrawer(props) {
 						setVisible={setVisible}
 					/>
 				) : (
-					<LoginOrSignUp
-						setLoginOrSignUpRes={setUser}
-						setVisible={setVisible}
-					/>
+					<LoginOrSignUp setVisible={setVisible} />
 				)}
 			</div>
 		</Drawer>
