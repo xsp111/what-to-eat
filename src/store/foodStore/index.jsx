@@ -21,57 +21,69 @@ const foodStore = createStore((_set, _get) => ({
 			});
 		});
 	},
-	addFood: (food) => {
+	addFood: async (food) => {
 		const { foodList } = _get();
-		foodService
-			.addFood({
-				name: food.name,
-				ref_value: food.refValue,
-				favor: food.favor,
-			})
-			.then((res) => {
-				const { success, msg: newFood } = res;
-				if (success) {
-					_set({
-						foodList: [
-							...foodList,
-							{
-								id: newFood.id,
-								name: newFood.name,
-								refValue: newFood.ref_value,
-								favor: newFood.favor,
-							},
-						],
-					});
-				}
+		const res = await foodService.addFood({
+			name: food.name,
+			ref_value: food.refValue,
+			favor: food.favor,
+		});
+		const { success, msg } = res;
+		if (success) {
+			const newFood = msg;
+			_set({
+				foodList: [
+					...foodList,
+					{
+						id: newFood.id,
+						name: newFood.name,
+						refValue: newFood.ref_value,
+						favor: newFood.favor,
+					},
+				],
 			});
+			return {
+				success,
+			};
+		} else {
+			return {
+				success,
+				msg,
+			};
+		}
 	},
-	editFood: (newFood) => {
+	editFood: async (newFood) => {
 		const { foodList } = _get();
-		const { id, ...newFoodInfo } = newFood;
-		foodService
-			.editFood(id, {
-				name: newFoodInfo.name,
-				ref_value: newFoodInfo.refValue,
-				favor: newFoodInfo.favor,
-			})
-			.then((res) => {
-				const { success, msg: newFoodInfo } = res;
-				if (success) {
-					_set({
-						foodList: foodList.map((food) => {
-							if (food.id === newFoodInfo.id)
-								return {
-									id: newFoodInfo.id,
-									name: newFoodInfo.name,
-									refValue: newFoodInfo.ref_value,
-									favor: newFoodInfo.favor,
-								};
-							return food;
-						}),
-					});
-				}
+		const { id, ...newFoodEditInfo } = newFood;
+		const res = await foodService.editFood(id, {
+			name: newFoodEditInfo.name,
+			ref_value: newFoodEditInfo.refValue,
+			favor: newFoodEditInfo.favor,
+		});
+		const { success, msg } = res;
+		if (success) {
+			const newFoodInfo = msg;
+			_set({
+				foodList: foodList.map((food) => {
+					if (food.id === newFoodInfo.id)
+						return {
+							id: newFoodInfo.id,
+							name: newFoodInfo.name,
+							refValue: newFoodInfo.ref_value,
+							favor: newFoodInfo.favor,
+						};
+					return food;
+				}),
 			});
+			return {
+				success,
+			};
+		} else {
+			return {
+				success,
+				msg,
+			};
+		}
 	},
 	removeFood: (id) => {
 		const { foodList } = _get();

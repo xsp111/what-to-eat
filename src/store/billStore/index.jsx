@@ -16,31 +16,45 @@ const billStore = createStore((_set, _get) => ({
 			});
 		});
 	},
-	addBill: (bill) => {
+	addBill: async (bill) => {
 		const { billList } = _get();
-		billService.addBill(bill).then((res) => {
-			const { success, msg: newBill } = res;
-			if (success) {
-				_set({
-					billList: [...billList, newBill],
-				});
-			}
-		});
+		const res = await billService.addBill(bill);
+		const { success, msg } = res;
+		if (success) {
+			const newBill = msg;
+			_set({
+				billList: [...billList, newBill],
+			});
+			return {
+				success,
+			};
+		} else {
+			return {
+				success,
+				msg,
+			};
+		}
 	},
-	editBill: (newBill) => {
+	editBill: async (newBill) => {
 		const { billList } = _get();
-		const { id, ...newBillInfo } = newBill;
-		billService.editBill(id, newBillInfo).then((res) => {
-			const { success, msg: newBillInfo } = res;
-			if (success) {
-				_set({
-					billList: billList.map((bill) => {
-						if (bill.id === newBillInfo.id) return newBillInfo;
-						return bill;
-					}),
-				});
-			}
-		});
+		const { id, ...newBillEditInfo } = newBill;
+		const res = await billService.editBill(id, newBillEditInfo);
+		const { success, msg } = res;
+		if (success) {
+			const newBillInfo = msg;
+			_set({
+				billList: billList.map((bill) => {
+					if (bill.id === newBillInfo.id) return newBillInfo;
+					return bill;
+				}),
+			});
+			return { success };
+		} else {
+			return {
+				success,
+				msg,
+			};
+		}
 	},
 	removeBill: (id) => {
 		const { billList } = _get();

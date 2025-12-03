@@ -14,18 +14,19 @@ export default function EditForm({ setVisible, initBillInfo }) {
 	const messageApi = useContext(MessageContext);
 	const { addBill, editBill, removeBill } = useStore(billStore);
 	const [bill, setBill] = useState(initBillInfo);
-	const billTypeOptions = Array.from({ length: 5 }, (_, i) => i)
-	.map((idx) => ({
-		label: (
-			<div className='flex w-12 gap-1'>
-				<img src={billTypeMap[idx].icon} width={16} />
-				<span className='text-sm text-gray-600'>
-					{billTypeMap[idx].label}
-				</span>
-			</div>
-		),
-		value: idx,
-	}));
+	const billTypeOptions = Array.from({ length: 5 }, (_, i) => i).map(
+		(idx) => ({
+			label: (
+				<div className='flex w-12 gap-1'>
+					<img src={billTypeMap[idx].icon} width={16} />
+					<span className='text-sm text-gray-600'>
+						{billTypeMap[idx].label}
+					</span>
+				</div>
+			),
+			value: idx,
+		}),
+	);
 
 	function handleChange(e) {
 		setBill({
@@ -34,7 +35,7 @@ export default function EditForm({ setVisible, initBillInfo }) {
 		});
 	}
 
-	function handleSave() {
+	async function handleSave() {
 		const date = bill.date;
 		if (!date) {
 			messageApi.error('请选择日期');
@@ -49,16 +50,26 @@ export default function EditForm({ setVisible, initBillInfo }) {
 			return;
 		}
 		if (id) {
-			editBill({
+			const res = await editBill({
 				...bill,
 				id,
 			});
-			messageApi.success('更新成功');
+			if (res.success) {
+				messageApi.success('更新成功');
+			} else {
+				messageApi.error(res.msg);
+				return;
+			}
 		} else {
-			addBill({
+			const res = await addBill({
 				...bill,
 			});
-			messageApi.success('新增成功');
+			if (res.success) {
+				messageApi.success('新增成功');
+			} else {
+				messageApi.error(res.msg);
+				return;
+			}
 		}
 		setVisible({
 			state: modalInfoEnum['unvisible'],

@@ -4,13 +4,12 @@ import { useContext, useEffect, useState } from 'react';
 import Button from '../../../components/button';
 import { useStore } from 'zustand';
 import foodStore from '../../../store/foodStore';
-import { getID } from '../../../utils';
 import { MessageContext } from '../../../components/rootLayout/context';
 
 export default function FoodEdit({ searchFood, setSearchFood }) {
 	const messageApi = useContext(MessageContext);
 	const isAdd = searchFood === 0;
-	const [foodInfo, setFoodInfo] = useState(null);
+	const [foodInfo, setFoodInfo] = useState();
 	const { editFood, addFood, removeFood } = useStore(foodStore);
 
 	useEffect(() => {
@@ -24,18 +23,28 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 		});
 	}
 
-	function handleSave() {
-		if (isAdd) {
-			addFood({
-				...foodInfo,
-				id: getID(),
-			});
-			messageApi.success('新增成功');
-		} else {
-			editFood(foodInfo);
-			messageApi.success('修改成功');
+	async function handleSave() {
+		if (!foodInfo.name || foodInfo?.name.trim() === '') {
+			messageApi.error('请输入食物名称');
+			return;
 		}
-		setSearchFood(null);
+		if (isAdd) {
+			const res = await addFood(foodInfo);
+			if (res.success) {
+				messageApi.success('新增成功');
+				setSearchFood(null);
+			} else {
+				messageApi.error(res.msg);
+			}
+		} else {
+			const res = await editFood(foodInfo);
+			if (res.success) {
+				messageApi.success('修改成功');
+				setSearchFood(null);
+			} else {
+				messageApi.error(res.msg);
+			}
+		}
 	}
 
 	function handleDelete() {
