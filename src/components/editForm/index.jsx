@@ -54,11 +54,13 @@ export default function EditForm({ setVisible, initBillInfo }) {
 			messageApi.error('请输入正确的金额💰');
 			return;
 		}
+		setLoading(true);
 		if (id) {
 			const res = await editBill({
 				...bill,
 				id,
 			});
+			setLoading(false);
 			if (res.success) {
 				messageApi.success('更新成功');
 			} else {
@@ -69,6 +71,7 @@ export default function EditForm({ setVisible, initBillInfo }) {
 			const res = await addBill({
 				...bill,
 			});
+			setLoading(false);
 			if (res.success) {
 				messageApi.success('新增成功');
 			} else {
