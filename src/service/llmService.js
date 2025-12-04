@@ -1,15 +1,19 @@
 import { ApiFetch } from '../utils';
-import devPrefix from './env';
+import apiPrefix from './env';
+
+async function getConversationCtx() {
+	return ApiFetch(apiPrefix + '/api/chat/history', {});
+}
 
 async function chat(data) {
-	return ApiFetch(devPrefix + '/api/chat', data, {
+	return ApiFetch(apiPrefix + '/api/chat', data, {
 		stream: true,
 	});
 }
 
 async function analyze() {
 	return ApiFetch(
-		devPrefix + '/api/chat/analyze',
+		apiPrefix + '/api/chat/analyze',
 		{},
 		{
 			stream: true,
@@ -17,4 +21,4 @@ async function analyze() {
 	);
 }
 
-export { chat, analyze };
+export { chat, analyze, getConversationCtx };

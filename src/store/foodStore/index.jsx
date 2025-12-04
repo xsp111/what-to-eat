@@ -85,16 +85,18 @@ const foodStore = createStore((_set, _get) => ({
 			};
 		}
 	},
-	removeFood: (id) => {
+	removeFood: async (id) => {
 		const { foodList } = _get();
-		foodService.deleteFood(id).then((res) => {
-			const { success } = res;
-			if (success) {
-				_set({
-					foodList: foodList.filter((item) => item.id !== id),
-				});
-			}
-		});
+		const res = await foodService.deleteFood(id);
+		const { success } = res;
+		if (success) {
+			_set({
+				foodList: foodList.filter((item) => item.id !== id),
+			});
+		}
+		return {
+			success,
+		};
 	},
 }));
 export default foodStore;

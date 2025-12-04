@@ -68,8 +68,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/chat', llmRoutes);
 
 app.get('/*splat', (req, res) => {
-	console.log(getClientIP(req), '访问了网站');
 	res.sendFile(path.join(staticDir, 'index.html'));
+	console.log(getClientIP(req), '访问了网站');
 });
 app.listen(port, () => {
 	console.log(`服务运行在 ${port} 端口`);

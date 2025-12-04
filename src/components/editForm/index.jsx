@@ -1,5 +1,6 @@
 import { useStore } from 'zustand';
 import { DatePicker, Input, Select } from 'antd';
+import Button from '../button';
 import addIcon from '../../assets/add-bill.svg';
 import { useContext, useState } from 'react';
 import dayjs from 'dayjs';
@@ -13,7 +14,11 @@ export default function EditForm({ setVisible, initBillInfo }) {
 	const today = new Date();
 	const messageApi = useContext(MessageContext);
 	const { addBill, editBill, removeBill } = useStore(billStore);
-	const [bill, setBill] = useState(initBillInfo);
+	const [bill, setBill] = useState({
+		desc: '', // 不必要字段
+		...initBillInfo,
+	});
+	const [loading, setLoading] = useState(false);
 	const billTypeOptions = Array.from({ length: 5 }, (_, i) => i).map(
 		(idx) => ({
 			label: (
@@ -76,12 +81,18 @@ export default function EditForm({ setVisible, initBillInfo }) {
 		});
 	}
 
-	function handleDelete() {
-		removeBill(id);
-		messageApi.success('已删除');
-		setVisible({
-			state: modalInfoEnum['unvisible'],
-		});
+	async function handleDelete() {
+		setLoading(true);
+		const { success } = await removeBill(id);
+		setLoading(false);
+		if (success) {
+			messageApi.success('已删除');
+			setVisible({
+				state: modalInfoEnum['unvisible'],
+			});
+		} else {
+			messageApi.error('删除失败');
+		}
 	}
 
 	return (
@@ -141,19 +152,21 @@ export default function EditForm({ setVisible, initBillInfo }) {
 				/>
 			</div>
 			<div className='w-full flex justify-center items-center gap-2'>
-				<button
-					className='w-full flex justify-center items-center h-10 px-2.5 py-1.5 rounded-lg text-gray-600 bg-blue-50 border border-sky-300'
+				<Button
+					className='w-full h-10  py-1.5 text-gray-600 bg-blue-50  border-sky-300'
+					loading={loading}
 					onClick={handleSave}
 				>
 					save
-				</button>
+				</Button>
 				{id && (
-					<button
-						className='w-full flex justify-center items-center h-10 px-2.5 py-1.5 rounded-lg bg-red-50 border border-pink-300 text-red-300'
+					<Button
+						className='w-full  h-10  py-1.5  bg-red-50 '
+						loading={loading}
 						onClick={handleDelete}
 					>
 						delete
-					</button>
+					</Button>
 				)}
 			</div>
 		</>

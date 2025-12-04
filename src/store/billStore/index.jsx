@@ -56,16 +56,18 @@ const billStore = createStore((_set, _get) => ({
 			};
 		}
 	},
-	removeBill: (id) => {
+	removeBill: async (id) => {
 		const { billList } = _get();
-		billService.deleteBill(id).then((res) => {
-			const { success } = res;
-			if (success) {
-				_set({
-					billList: billList.filter((item) => item.id !== id),
-				});
-			}
-		});
+		const res = await billService.deleteBill(id);
+		const { success } = res;
+		if (success) {
+			_set({
+				billList: billList.filter((item) => item.id !== id),
+			});
+		}
+		return {
+			success,
+		};
 	},
 	getBillByID: (id) => {
 		const { billList } = _get();

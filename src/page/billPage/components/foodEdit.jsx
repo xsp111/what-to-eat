@@ -9,11 +9,24 @@ import { MessageContext } from '../../../components/rootLayout/context';
 export default function FoodEdit({ searchFood, setSearchFood }) {
 	const messageApi = useContext(MessageContext);
 	const isAdd = searchFood === 0;
-	const [foodInfo, setFoodInfo] = useState();
+	const [foodInfo, setFoodInfo] = useState({
+		name: '',
+		refValue: '',
+		favor: 0,
+	});
+	const [loading, setLoading] = useState(false);
 	const { editFood, addFood, removeFood } = useStore(foodStore);
 
 	useEffect(() => {
-		setFoodInfo(searchFood);
+		if (isAdd) {
+			setFoodInfo({
+				name: '',
+				refValue: '',
+				favor: 0,
+			});
+		} else {
+			setFoodInfo(searchFood);
+		}
 	}, [searchFood]);
 
 	function handleChange(e) {
@@ -24,12 +37,22 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 	}
 
 	async function handleSave() {
-		if (!foodInfo.name || foodInfo?.name.trim() === '') {
+		if (foodInfo?.name.trim() === '') {
 			messageApi.error('请输入食物名称');
 			return;
 		}
+		if (foodInfo?.refValue.trim() === '') {
+			messageApi.error('请输入预计价格');
+			return;
+		}
+		if (foodInfo.favor === 0) {
+			messageApi.error('请输入喜爱程度');
+			return;
+		}
 		if (isAdd) {
+			setLoading(true);
 			const res = await addFood(foodInfo);
+			setLoading(false);
 			if (res.success) {
 				messageApi.success('新增成功');
 				setSearchFood(null);
@@ -37,7 +60,9 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 				messageApi.error(res.msg);
 			}
 		} else {
+			setLoading(true);
 			const res = await editFood(foodInfo);
+			setLoading(false);
 			if (res.success) {
 				messageApi.success('修改成功');
 				setSearchFood(null);
@@ -47,10 +72,16 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 		}
 	}
 
-	function handleDelete() {
-		removeFood(foodInfo?.id);
-		messageApi.success('修改成功');
-		setSearchFood(null);
+	async function handleDelete() {
+		setLoading(true);
+		const { success } = await removeFood(foodInfo?.id);
+		setLoading(true);
+		if (success) {
+			messageApi.success('修改成功');
+			setSearchFood(null);
+		} else {
+			messageApi.error('修改失败');
+		}
 	}
 
 	return (
@@ -71,7 +102,7 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 				<div className='flex-3 flex justify-center'>
 					<input
 						className='w-full px-2 text-center border-b  border-b-pink-300 outline-0'
-						value={foodInfo?.name}
+						value={foodInfo.name}
 						name='name'
 						onChange={handleChange}
 					/>
@@ -82,7 +113,7 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 				<div className='flex-3 flex justify-center'>
 					<input
 						className='w-full px-2 text-center border-b  border-b-pink-300 outline-0'
-						value={foodInfo?.refValue}
+						value={foodInfo.refValue}
 						name='refValue'
 						onChange={handleChange}
 					/>
@@ -92,7 +123,7 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 				<span className='flex-1 text-sm text-gray-700'>喜爱程度：</span>
 				<div className='flex-3 flex justify-center'>
 					<Rate
-						value={foodInfo?.favor}
+						value={foodInfo.favor}
 						onChange={(value) => {
 							setFoodInfo({
 								...foodInfo,
@@ -105,12 +136,17 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 			<div className='flex w-full gap-4'>
 				<Button
 					className='w-full h-8 border-sky-300 bg-blue-50 text-gray-500'
+					loading={loading}
 					onClick={handleSave}
 				>
 					{isAdd ? '新增' : '保存'}
 				</Button>
 				{!isAdd && (
-					<Button className='w-full h-8' onClick={handleDelete}>
+					<Button
+						className='w-full h-8'
+						onClick={handleDelete}
+						loading={loading}
+					>
 						delete
 					</Button>
 				)}

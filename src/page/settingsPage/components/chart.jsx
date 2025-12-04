@@ -13,17 +13,18 @@ import {
 	Pie,
 	Cell,
 } from 'recharts';
-import { getRecent7Days } from '../../../utils';
+import { getCurrentWeekDays } from '../../../utils';
 import { useStore } from 'zustand';
 import { billStore } from '../../../store';
 import { billTypeEnum, billTypeMap } from '../../../constant/billType';
 import dayjs from 'dayjs';
+import { DatePicker } from 'antd';
+import { useState } from 'react';
 
 const COLORS = ['#00C49F', 'pink', '#FFBB28', '#0088FE', '#FF8042'];
 
-function useChartData() {
+function useChartData(dates) {
 	const { billList: rawBillList } = useStore(billStore);
-	const dates = getRecent7Days();
 	const billList = rawBillList.filter((bill) => dates.includes(bill.date));
 	const totalCost = billList.reduce(
 		(pre, bill) => pre + Number(bill.value),
@@ -40,7 +41,7 @@ function useChartData() {
 				bill.type === billTypeEnum['吃喝'] ? Number(bill.value) : 0;
 			return pre + cost;
 		}, 0);
-		const percent = (curDateTotalCost / totalCost) * (totalCost / 7);
+		const percent = (curDateTotalCost / totalCost) * (totalCost / 2);
 		return {
 			date: dayjs(date).format('MM-DD'),
 			total: curDateTotalCost,
@@ -82,7 +83,7 @@ function ChartTooltip(props) {
 				const value =
 					item.name !== 'percent'
 						? `${item.value.toFixed(2)}￥`
-						: `${((item.value / (totalCost / 7)) * 100).toFixed(
+						: `${((item.value / (totalCost / 2)) * 100).toFixed(
 								2,
 						  )}%`;
 				return (
@@ -100,20 +101,29 @@ function ChartTooltip(props) {
 }
 
 export default function Chart() {
-	const { totalCost, dateCost, typeCost } = useChartData();
+	const [date, setDate] = useState(dayjs());
+	const { totalCost, dateCost, typeCost } = useChartData(
+		getCurrentWeekDays(date),
+	);
 
 	return (
 		<CardContainer className='mt-3 flex-col'>
 			<div className='w-full flex flex-col gap-2'>
-				<div className='w-full flex justify-between text-gray-600 font-bold text-sm '>
-					<span className=''>总花费: {totalCost.toFixed(2)} ￥</span>
-					<span className='mr-6'>最近七天每日消费</span>
+				<div className='w-full flex justify-between items-center text-gray-600 font-bold text-sm '>
+					<span>总花费: {totalCost.toFixed(2)} ￥</span>
+					<DatePicker
+						picker='week'
+						value={dayjs(date)}
+						onChange={(date) => {
+							setDate(date);
+						}}
+					/>
 				</div>
 				<ComposedChart
 					style={{
 						width: '100%',
 						maxWidth: '700px',
-						maxHeight: '70vh',
+						maxHeight: '220px',
 						aspectRatio: 1.618,
 					}}
 					responsive
@@ -156,7 +166,7 @@ export default function Chart() {
 					style={{
 						width: '100%',
 						maxWidth: '500px',
-						maxHeight: '30vh',
+						maxHeight: '220px',
 						aspectRatio: 1,
 					}}
 					responsive

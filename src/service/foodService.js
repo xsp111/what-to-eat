@@ -1,19 +1,19 @@
 import { ApiFetch } from '../utils';
-import devPrefix from './env';
+import apiPrefix from './env';
 
 async function getFood() {
-	return ApiFetch(devPrefix + '/api/food/get');
+	return ApiFetch(apiPrefix + '/api/food/get');
 }
 async function addFood(foodInfo) {
-	return ApiFetch(devPrefix + '/api/food/add', { foodInfo });
+	return ApiFetch(apiPrefix + '/api/food/add', { foodInfo });
 }
 
 async function deleteFood(id) {
-	return ApiFetch(devPrefix + '/api/food/delete', { id });
+	return ApiFetch(apiPrefix + '/api/food/delete', { id });
 }
 
 async function editFood(id, foodInfo) {
-	return ApiFetch(devPrefix + '/api/food/edit', { id, foodInfo });
+	return ApiFetch(apiPrefix + '/api/food/edit', { id, foodInfo });
 }
 
 export { getFood, addFood, deleteFood, editFood };

@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek'; // ES 2015
+
+dayjs.extend(isoWeek);
 
 function getBillByDate(billList, date) {
 	return billList.filter((item) => item.date === date);
@@ -136,11 +139,9 @@ function removeCookieByKey(key) {
 	return true;
 }
 
-function getRecent7Days() {
+function getCurrentWeekDays(date) {
 	return Array.from({ length: 7 }, (_, i) =>
-		dayjs()
-			.subtract(6 - i, 'day')
-			.format('YYYY-MM-DD'),
+		dayjs(date).isoWeekday(i).format('YYYY-MM-DD'),
 	);
 }
 
@@ -153,5 +154,5 @@ export {
 	getFormatDate,
 	getCookieByKey,
 	removeCookieByKey,
-	getRecent7Days,
+	getCurrentWeekDays,
 };

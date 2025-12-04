@@ -2,7 +2,7 @@ import { Avatar, Drawer } from 'antd';
 import { useStore } from 'zustand';
 import userStore from '../../../store/userStore';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { LoadingOutlined, UserOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 import Button from '../../../components/button';
 import { MessageContext } from '../../../components/rootLayout/context';
 
@@ -16,7 +16,7 @@ function LoginOrSignUp(props) {
 	const [isLogin, setIsLogin] = useState(true);
 	const tipsType = isLogin ? '登录' : '注册';
 	const messageApi = useContext(MessageContext);
-	const [isLoading, setIsLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const [user, setUser] = useState({
 		name: '',
 		password: '',
@@ -34,15 +34,15 @@ function LoginOrSignUp(props) {
 			messageApi.error('请输入正确的用户名或密码');
 			return;
 		}
-		setIsLoading(true);
+		setLoading(true);
 		const res = await loginOrSignUp(user, isLogin);
 		if (!res.success) {
 			messageApi.error(tipsType + '失败,' + isLogin ? res.msg : '');
-			setIsLoading(false);
+			setLoading(false);
 			return;
 		}
 		setHkTips();
-		setIsLoading(false);
+		setLoading(false);
 		setLoginOrSignUpRes(res.msg);
 		messageApi.success(tipsType + '成功');
 		setVisible(false);
@@ -101,12 +101,11 @@ function LoginOrSignUp(props) {
 				</span>
 			</div>
 			<Button
-				className={`w-full h-8 ${
-					isLoading ? 'bg-gray-300' : 'bg-sky-200'
-				} border-none text-white`}
+				className={`w-full h-8 bg-sky-200 border-none text-white`}
+				loading={loading}
 				onClick={handleLoginOrSignUp}
 			>
-				{isLoading ? <LoadingOutlined /> : tipsType}
+				{tipsType}
 			</Button>
 		</>
 	);
@@ -115,7 +114,7 @@ function LoginOrSignUp(props) {
 function EditProfile(props) {
 	const { logout, user, setVisible } = props;
 	const { editUserInfo } = useStore(userStore);
-	const [isLoading, setIsLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const [form, setForm] = useState({
 		name: user.name,
 	});
@@ -139,15 +138,15 @@ function EditProfile(props) {
 			messageApi.error('请输入正确的用户名或密码');
 			return;
 		}
-		setIsLoading(true);
+		setLoading(true);
 		const res = await editUserInfo(form);
-		setIsLoading(false);
+		setLoading(false);
 		if (res.success) {
 			messageApi.success('修改成功');
+			setVisible(false);
 		} else {
 			messageApi.error('修改失败');
 		}
-		setVisible(false);
 	}
 
 	return (
@@ -204,12 +203,11 @@ function EditProfile(props) {
 			</div>
 			<div className='w-full flex gap-2'>
 				<Button
-					className={`flex-1 h-8 ${
-						isLoading ? 'bg-gray-300' : 'bg-sky-200'
-					} text-white border-none`}
+					className={`flex-1 h-8  bg-sky-200 text-white border-none`}
+					loading={loading}
 					onClick={handleEdit}
 				>
-					{isLoading ? <LoadingOutlined /> : '修改'}
+					修改
 				</Button>
 				<Button
 					className='flex-1'
