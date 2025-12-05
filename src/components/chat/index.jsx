@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from '../button';
-import { CommentOutlined, SendOutlined, StopOutlined } from '@ant-design/icons';
+import {
+	CommentOutlined,
+	LoadingOutlined,
+	SendOutlined,
+} from '@ant-design/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -28,6 +32,8 @@ export default function Chat() {
 				if (res.success) {
 					setMessages(res.msg);
 					setLoading(false);
+				} else {
+					setLoading(true);
 				}
 			});
 		}
@@ -109,7 +115,7 @@ export default function Chat() {
 											</div>
 										)}
 										<div
-											className={`px-3 py-2 rounded-lg shadow-sm max-w-[75%] wrap-break-word ${
+											className={`relative px-3 py-2 rounded-lg shadow-sm max-w-[75%] wrap-break-word ${
 												isUser
 													? 'bg-pink-400 text-white rounded-br-none'
 													: 'bg-gray-50 text-gray-800 rounded-bl-none'
@@ -118,54 +124,67 @@ export default function Chat() {
 											{isUser ? (
 												<span>{m.content}</span>
 											) : (
-												<ReactMarkdown
-													remarkPlugins={[remarkGfm]}
-													rehypePlugins={[
-														rehypeSanitize,
-													]}
-													components={{
-														code({
-															node,
-															inline,
-															className,
-															children,
-															...props
-														}) {
-															if (inline) {
+												<>
+													<ReactMarkdown
+														remarkPlugins={[
+															remarkGfm,
+														]}
+														rehypePlugins={[
+															rehypeSanitize,
+														]}
+														components={{
+															code({
+																node,
+																inline,
+																className,
+																children,
+																...props
+															}) {
+																if (inline) {
+																	return (
+																		<code
+																			className={`bg-gray-100 px-1 rounded text-sm ${
+																				className ??
+																				''
+																			}`}
+																			{...props}
+																		>
+																			{
+																				children
+																			}
+																		</code>
+																	);
+																}
+																// 处理代码块自动换行
 																return (
-																	<code
-																		className={`bg-gray-100 px-1 rounded text-sm ${
-																			className ??
-																			''
-																		}`}
-																		{...props}
-																	>
-																		{
-																			children
-																		}
-																	</code>
+																	<pre className='whitespace-pre-wrap wrap-break-word bg-gray-50 p-2 rounded text-sm overflow-x-auto'>
+																		<code
+																			className={
+																				className
+																			}
+																			{...props}
+																		>
+																			{
+																				children
+																			}
+																		</code>
+																	</pre>
 																);
-															}
-															// 处理代码块自动换行
-															return (
-																<pre className='whitespace-pre-wrap wrap-break-word bg-gray-50 p-2 rounded text-sm overflow-x-auto'>
-																	<code
-																		className={
-																			className
-																		}
-																		{...props}
-																	>
-																		{
-																			children
-																		}
-																	</code>
-																</pre>
-															);
-														},
-													}}
-												>
-													{m.content || ''}
-												</ReactMarkdown>
+															},
+														}}
+													>
+														{m.content || ''}
+													</ReactMarkdown>
+													{isGenerating &&
+														i ===
+															messages.length -
+																1 && (
+															<span className='mt-2 flex items-center gap-2 text-gray-400 text-xs'>
+																生成中
+																<LoadingOutlined />
+															</span>
+														)}
+												</>
 											)}
 										</div>
 										{isUser && (
@@ -201,14 +220,14 @@ export default function Chat() {
 								/>
 								<Button
 									className={`flex-1 h-8 border-none ${
-										isGenerating
+										isGenerating || loading
 											? 'bg-gray-300'
 											: 'bg-blue-300'
 									} text-white`}
 									onClick={send}
 								>
-									{isGenerating ? (
-										<StopOutlined />
+									{isGenerating || loading ? (
+										<LoadingOutlined />
 									) : (
 										<SendOutlined />
 									)}

@@ -1,9 +1,11 @@
 import db from '../db/index.js';
 
-async function getBill(id) {
+async function getBill(condition) {
+	const { id, ...otherCondition } = condition;
 	const billList = await db.bill.findMany({
 		where: {
 			ownerId: id,
+			...otherCondition,
 		},
 	});
 	return billList;

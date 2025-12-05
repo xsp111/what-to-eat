@@ -8,7 +8,7 @@ async function getBill(req, res) {
 		});
 		return;
 	}
-	const billList = await billService.getBill(userId);
+	const billList = await billService.getBill({ id: userId });
 	res.status(200).json(billList);
 }
 

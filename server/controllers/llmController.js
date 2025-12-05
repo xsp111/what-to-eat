@@ -15,20 +15,15 @@ async function chatWithLLM(req, res) {
 	res.setHeader('Content-Type', 'text/event-stream');
 	res.setHeader('Cache-Control', 'no-cache');
 	res.setHeader('Connection', 'keep-alive');
-	const messageId = userId + dayjs().format('YYYY-MM-DD');
-	const stream = await llmService.chat(messageId, input);
-
-	let reply = '';
-	for await (const chunk of stream) {
-		const text = chunk.content;
-		reply += text;
-		res.write(text);
-	}
-	llmService.chatMessagesStore.get(messageId).push({
-		role: 'assistant',
-		content: reply,
-	});
-
+	const messageId = dayjs().format('YYYY-MM-DD') + userId;
+	await llmService.chat(
+		messageId,
+		{
+			userId,
+			input,
+		},
+		res,
+	);
 	res.end();
 }
 
@@ -41,9 +36,10 @@ async function analyzeDaily(req, res) {
 		return;
 	}
 	const date = dayjs().format('YYYY-MM-DD');
-	const todayBill = (await billService.getBill(userId)).filter(
-		(bill) => bill.date === date,
-	);
+	const todayBill = await billService.getBill({
+		id: userId,
+		date,
+	});
 	const food = await foodService.getFood(userId);
 	const preInfo = {
 		todayBill,
@@ -57,7 +53,10 @@ async function analyzeDaily(req, res) {
 		null,
 		2,
 	)}`;
-	const stream = await llmService.chat('once', userInput);
+	const stream = await llmService.chat('once', {
+		userId,
+		input: userInput,
+	});
 
 	for await (const chunk of stream) {
 		const text = chunk.content;
@@ -76,7 +75,7 @@ async function getHistoryCtx(req, res) {
 		});
 		return;
 	}
-	const messageId = userId + dayjs().format('YYYY-MM-DD');
+	const messageId = dayjs().format('YYYY-MM-DD') + userId;
 	const history = await llmService.getHistoryCtx(messageId);
 	return res.status(200).json({
 		success: 1,

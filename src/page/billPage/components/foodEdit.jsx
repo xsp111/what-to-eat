@@ -147,7 +147,7 @@ export default function FoodEdit({ searchFood, setSearchFood }) {
 						onClick={handleDelete}
 						loading={loading}
 					>
-						delete
+						删除
 					</Button>
 				)}
 			</div>
