@@ -48,7 +48,7 @@ async function analyzeDaily(req, res) {
 	res.setHeader('Content-Type', 'text/event-stream');
 	res.setHeader('Cache-Control', 'no-cache');
 	res.setHeader('Connection', 'keep-alive');
-	const userInput = `针对今日账单信息并结合菜单，总结并给出日常饮食健康和消费方面建议，不要高于56个字:${JSON.stringify(
+	const userInput = `针对今日账单信息并结合菜单，总结并给出日常饮食健康和消费方面建议，不要高于50个字:${JSON.stringify(
 		preInfo,
 		null,
 		2,
@@ -77,10 +77,32 @@ async function getHistoryCtx(req, res) {
 	}
 	const messageId = dayjs().format('YYYY-MM-DD') + userId;
 	const history = await llmService.getHistoryCtx(messageId);
-	return res.status(200).json({
+	res.status(200).json({
 		success: 1,
 		msg: history,
 	});
 }
 
-export { chatWithLLM, analyzeDaily, getHistoryCtx };
+async function clearHistory(req, res) {
+	const { authToken: userId } = req.cookies;
+	if (!userId) {
+		res.status(200).json({
+			msg: '未登录',
+		});
+		return;
+	}
+	const messageId = dayjs().format('YYYY-MM-DD') + userId;
+	const { success } = await llmService.clearHistory(messageId);
+	if (success) {
+		res.status(200).json({
+			success,
+		});
+	} else {
+		res.status(200).json({
+			success,
+			msg: '删除失败',
+		});
+	}
+}
+
+export { chatWithLLM, analyzeDaily, getHistoryCtx, clearHistory };

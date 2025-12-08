@@ -101,7 +101,7 @@ function ChartTooltip(props) {
 }
 
 export default function Chart() {
-	const [date, setDate] = useState(dayjs());
+	const [date, setDate] = useState(dayjs().subtract(1, 'day'));
 	const { totalCost, dateCost, typeCost } = useChartData(
 		getCurrentWeekDays(date),
 	);
@@ -115,7 +115,7 @@ export default function Chart() {
 						picker='week'
 						value={dayjs(date)}
 						onChange={(date) => {
-							setDate(date);
+							setDate(dayjs(date));
 						}}
 					/>
 				</div>
@@ -123,7 +123,7 @@ export default function Chart() {
 					style={{
 						width: '100%',
 						maxWidth: '700px',
-						maxHeight: '220px',
+						maxHeight: '250px',
 						aspectRatio: 1.618,
 					}}
 					responsive
@@ -166,7 +166,7 @@ export default function Chart() {
 					style={{
 						width: '100%',
 						maxWidth: '500px',
-						maxHeight: '220px',
+						maxHeight: '250px',
 						aspectRatio: 1,
 					}}
 					responsive

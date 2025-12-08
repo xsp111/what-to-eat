@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import Button from '../button';
 import {
+	ClearOutlined,
 	CommentOutlined,
 	LoadingOutlined,
 	SendOutlined,
@@ -11,11 +12,12 @@ import rehypeSanitize from 'rehype-sanitize';
 import chatbot from '../../assets/avatar-chatbot.svg';
 import defalutAvatar from '../../assets/user.svg';
 import helloKitty from '../../assets/ht-chatbot.svg';
-import { chat, getConversationCtx } from '../../service/llmService';
-import { Drawer, FloatButton, Skeleton } from 'antd';
+import * as llmService from '../../service/llmService';
+import { Drawer, FloatButton, Modal, Skeleton } from 'antd';
 import { useStore } from 'zustand';
 import { userStore } from '../../store';
 import { Link } from 'react-router';
+import { MessageContext } from '../rootLayout/context';
 
 export default function Chat() {
 	const [chatDrawerVisible, setChatDrawerVisible] = useState(false);
@@ -23,12 +25,16 @@ export default function Chat() {
 	const [loading, setLoading] = useState(true);
 	const [input, setInput] = useState('');
 	const [isGenerating, setIsGenerating] = useState(false);
+	const [clearConfirmModalVisible, setClearConfirmModalVisible] =
+		useState(false);
+	const [clearConfirmLoading, setClearConfirmLoading] = useState(false);
+	const messageApi = useContext(MessageContext);
 	const { user } = useStore(userStore);
 	const endRef = useRef(null);
 
 	useEffect(() => {
 		if (chatDrawerVisible) {
-			getConversationCtx().then((res) => {
+			llmService.getConversationCtx().then((res) => {
 				if (res.success) {
 					setMessages(res.msg);
 					setLoading(false);
@@ -61,7 +67,7 @@ export default function Chat() {
 		setIsGenerating(true);
 		setInput('');
 
-		const reader = await chat({ input });
+		const reader = await llmService.chat({ input });
 		let botText = '';
 
 		while (true) {
@@ -81,6 +87,19 @@ export default function Chat() {
 		}
 	}
 
+	async function handleClear() {
+		setClearConfirmLoading(true);
+		const { success } = await llmService.clearConversation();
+		if (success) {
+			messageApi.success('删除成功');
+			setMessages([]);
+			setClearConfirmModalVisible(false);
+		} else {
+			messageApi.error('删除失败');
+		}
+		setClearConfirmLoading(false);
+	}
+
 	return (
 		<>
 			<FloatButton
@@ -95,7 +114,24 @@ export default function Chat() {
 				}}
 				placement='bottom'
 				size={loading ? 'default' : 'large'}
-				title={<div className='font-bold text-xl'>你的小助手</div>}
+				title={
+					<div className='flex items-center justify-between'>
+						<span className='font-bold text-xl'>你的小助手</span>
+						{user && messages.length > 0 ? (
+							<span
+								className='text-gray-400 text-sm'
+								onClick={() => {
+									setClearConfirmModalVisible(true);
+								}}
+							>
+								<ClearOutlined />
+								清空
+							</span>
+						) : (
+							<span>{''}</span>
+						)}
+					</div>
+				}
 			>
 				<div className='w-full h-full'>
 					<div className='flex flex-col gap-3 max-h-[90%] overflow-auto'>
@@ -207,7 +243,6 @@ export default function Chat() {
 
 						<div ref={endRef} />
 					</div>
-
 					<div className='fixed left-0 bottom-0 w-screen px-6 h-15 bg-white flex items-center gap-2'>
 						<img src={helloKitty} width={36} />
 						{user ? (
@@ -250,6 +285,19 @@ export default function Chat() {
 					</div>
 				</div>
 			</Drawer>
+			<Modal
+				open={clearConfirmModalVisible}
+				centered
+				onCancel={() => {
+					setClearConfirmModalVisible(false);
+				}}
+				onOk={handleClear}
+				confirmLoading={clearConfirmLoading}
+				okText='删除'
+				cancelText='取消'
+			>
+				<span className=''>删除后记录将无法恢复，确认删除？</span>
+			</Modal>
 		</>
 	);
 }

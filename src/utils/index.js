@@ -141,7 +141,9 @@ function removeCookieByKey(key) {
 
 function getCurrentWeekDays(date) {
 	return Array.from({ length: 7 }, (_, i) =>
-		dayjs(date).isoWeekday(i).format('YYYY-MM-DD'),
+		(dayjs(date).isoWeekday() > 6 ? dayjs(date).add(1, 'day') : dayjs(date))
+			.isoWeekday(i)
+			.format('YYYY-MM-DD'),
 	);
 }
 

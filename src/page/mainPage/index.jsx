@@ -9,7 +9,7 @@ export default function MainPage() {
 	return (
 		<PageContainer
 			bgImg={bgImg}
-			className='justify-start gap-5 overflow-auto'
+			className='pt-7 justify-start gap-5 overflow-auto'
 		>
 			<TimeClock />
 			<Weather />

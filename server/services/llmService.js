@@ -164,4 +164,10 @@ async function getHistoryCtx(messageId) {
 		.filter((message) => message.role !== 'system');
 }
 
-export { chat, getHistoryCtx, chatMessagesStore };
+async function clearHistory(messageId) {
+	return {
+		success: chatMessagesStore.delete(messageId),
+	};
+}
+
+export { chat, getHistoryCtx, clearHistory, chatMessagesStore };

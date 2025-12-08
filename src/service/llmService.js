@@ -21,4 +21,8 @@ async function analyze() {
 	);
 }
 
-export { chat, analyze, getConversationCtx };
+async function clearConversation() {
+	return ApiFetch(apiPrefix + '/api/chat/clear', {});
+}
+
+export { chat, analyze, getConversationCtx, clearConversation };
