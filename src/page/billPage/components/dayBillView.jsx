@@ -55,7 +55,7 @@ export default function DayBillView() {
 		<CardContainer className='flex-col gap-0'>
 			<div className='flex justify-between items-center w-full'>
 				<div>
-					<span className='text-blue-400'>{'这天的开销: '}</span>
+					<span className='text-blue-400'>{'这天开销: '}</span>
 					<span>
 						{dayBillList
 							.reduce(
@@ -122,6 +122,7 @@ export default function DayBillView() {
 					setModalState={setModalState}
 					initInfo={{
 						id: modalState?.info?.id,
+						date,
 						type: billType,
 					}}
 				/>
